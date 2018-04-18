@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+ 	<link href='https://fonts.googleapis.com/css?family=Coming+Soon' rel='stylesheet' type='text/css'>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
+ 	<title>EventJaunt&trade;</title>
+ 	<style>
+        .result{
+            text-align: center;
+            display: inline-block;
+            margin: auto;
+            background-color:#FFF5EE;
+            padding: .5%;
+            border-style: groove;
+            margin-bottom: .5%;
+            border-width: 3px;
+        }
+        .result img{
+            height: 120px;
+        }
+        .fa-download{
+            color: blue;
+        }
+        .fa-heart{
+            color: red;
+        }
+        p{
+            display: block;
+            padding: .5%;
+            line-height: 30%;
+        }
+        .title{
+            text-align: center;
+        }
+    </style>
+	<!-- Import jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  
+ 
+  <script>
+  "use strict";
+
+	var EVENTFUL_URL = "https://pixabay.com/api/"; //url to use fr Pixabay 
+	var API_KEY = "8711655-7e8ee33f32be9016148df6c1f";//Pixabay Api key
+	var value;
+	window.onload = init;
+	
+	function init(){
+		document.querySelector("#search").onclick = getData;
+	}
+	
+	// MY FUNCTIONS
+	function getData(){
+		// build up our URL string
+		var url = EVENTFUL_URL; 
+		url += "?key=" + API_KEY;
+		url += "&q=";
+		
+		// get value of form field
+		value = document.querySelector("#searchterm").value;
+		
+		// get rid of any leading and trailing spaces
+		value = value.trim();
+		
+		// if there's no band to search then bail out of the function
+		if(value.length < 1) return;
+		
+		document.querySelector("#dynamicContent").innerHTML = "<b>Searching for " + value + "</b>";
+		
+		// replace spaces the user typed in the middle of the term with %20
+		// %20 is the hexadecimal value for a space
+		value = encodeURI(value); 
+		
+		// finally, add the artist name to the end of the string
+		url += value;
+        url +="&image_type=photo";
+		
+		// call the web service, and download the file
+		console.log("loading " + url);
+		$("#content").fadeOut(1000);
+		$.ajax({
+		  dataType: "jsonp",
+		  url: url,
+		  data: null,
+		  success: jsonLoaded
+		});
+	}
+	
+	
+	function jsonLoaded(obj){
+		console.log("obj = " +obj);
+		console.log("obj stringified = " + JSON.stringify(obj));
+		
+		// if there's an error, print a message and return
+		if(obj.error){
+			var status = obj.status;
+			var description = obj.description;
+			document.querySelector("#dynamicContent").innerHTML = "<h3><b>Error!</b></h3>" + "<p><i>" + status + "</i><p>" + "<p><i>" + description + "</i><p>";
+			$("#dynamicContent").fadeIn(500);
+			return; // Bail out
+		}
+		
+		// if there are no results, print a message and return
+		if(obj.total_items == 0){
+			var status = "No results found";
+			document.querySelector("#dynamicContent").innerHTML = "<p><i>" + status + "</i><p>" + "<p><i>";
+			$("#dynamicContent").fadeIn(500);
+			return; // Bail out
+		}
+		
+		// TODO
+		// if there is only one result, Eventful returns an object instead of an array
+		// create an array with the single object
+		
+		// If there is an array of results, loop through them
+        
+        var allResults = obj.hits;
+		console.log("allResults.length = " + allResults.length);
+		var bigString = "<p><b>There are " + allResults.length + " results for " + value + "</b></p>";
+		bigString += "<hr />";
+        
+		
+		// loop through events here
+		// concatenate HTML to bigString as necessary
+        var prefix = "http:"
+        var section = document.createElement('section');
+        
+        var num = document.createElement('p');
+        num.innerHTML = bigString;
+        num.classList.add('length');
+        section.appendChild(num);
+        
+        //Change for Pixabay API
+        for(var i =0; i<allResults.length; i++)
+        {
+            var Results = allResults[i];
+            
+            var div = document.createElement('div');
+            div.classList.add('result');
+            
+            var image = document.createElement('img');
+            image.src = Results.previewURL;
+            image.classList.add('image');
+            div.appendChild(image);
+            
+            image.addEventListener("click", lightbox);
+            
+            var itmdiv = document.createElement('div');
+            div.classList.add('itms');
+            
+            var like = document.createElement('p');
+            like.innerHTML = '<i class="fas fa-heart"></i>' + " " + Results.likes;
+            like.classList.add('like');
+            itmdiv.appendChild(like);
+            
+            var fav = document.createElement('p');
+            fav.innerHTML = '<i class="fas fa-bookmark"></i>' + " " + Results.favorites;
+            fav.classList.add('fav');
+            itmdiv.appendChild(fav);
+            
+            var link = '<a href="'+Results.largeImageURL+'"  target="_blank"><i class="fas fa-download"></i></a>';
+            
+            var dl = document.createElement('p');
+            dl.innerHTML = link + Results.downloads;
+            dl.classList.add('dl');
+            itmdiv.appendChild(dl);
+            
+            div.appendChild(itmdiv);
+            
+            
+            section.appendChild(div);
+            
+            
+        }
+        
+		var content = document.querySelector("#dynamicContent");
+        
+        
+		$("#dynamicContent").fadeIn(500);
+        //document.querySelector("#dynamicContent").innerHTML = bigString;
+                
+        content.innerHTML ='';
+        
+                
+        content.appendChild(section);
+		
+		
+	}	
+      
+    function lightBox()
+    {
+        
+    }
+  
+  
+  
+  </script>
+  <style>
+  	*{
+ 		font-family: 'Coming Soon', sans-serif;
+ 	}
+ 	
+ 	h1{
+ 		color:#e4685d;
+ 	}
+ 	
+ 	.eventDiv{
+ 		border-bottom:1px solid gray;
+ 		margin-bottom:2em;
+ 	}
+ 	
+ 	#content{
+ 		margin-left: 5%;
+ 		margin-right:5%;
+ 		background-color:#FFF5EE;
+ 		min-height:500px;
+ 		padding:0 10px 10px 10px;
+ 		border:1px solid gray;
+ 	}
+ 	
+ 	#search{
+ 		box-shadow:inset 0px 1px 0px 0px #f7c5c0;
+ 		background:linear-gradient(to bottom, #fc8d83 5%, #e4685d 100%);
+ 		background-color:#fc8d83;
+ 		border-radius:6px;
+ 		border:1px solid #d83526;
+ 		display:inline-block;
+ 		cursor:pointer;
+ 		color:#ffffff;
+ 		font-size:15px;
+ 		font-weight:bold;
+ 		padding:6px 24px;
+ 		text-decoration:none;
+ 		text-shadow:0px 1px 0px #b23e35;
+ 		margin-right:2em;
+ 	}
+
+ 	
+ 	#search:hover {
+ 		background:linear-gradient(to bottom, #e4685d 5%, #fc8d83 100%);
+ 		background-color:#e4685d;
+ 	}
+
+ 	
+ 	#search:active {
+ 		position:relative;
+ 		top:1px;
+ 	}
+
+ 	
+ 	#searchterm{
+ 		font-size:16px;
+ 	}
+ 	
+ 	img{
+ 		padding:7px;
+ 		border:1px solid black;
+ 		background-color:white;
+ 	}
+  </style>
+  
+</head>
+<body>
+ <h1>EventJaunt&trade;</h1>
+
+<p><i>Your indispensable event finding service!</i></p>
+
+<button type="button" id="search">Get Event!<br />:-)</button>
+What is your location? -&gt; <input id="searchterm" type="text" size="20" maxlength="20" autofocus value="Rochester" /> 
+
+<h2>Results</h2>
+ <div id="dynamicContent">
+ <p>No data yet!</p>
+ </div>
+ 
+
+</body>
+</html>
